@@ -39,7 +39,8 @@ def init(config):
 
 @cli.command()
 @click.option('--config', '-c', help='Configuration file path')
-def start(config):
+@click.option('--api', is_flag=True, help='Start API server')
+def start(config, api):
     """Start ILLI system"""
     console.print(Panel.fit("Starting ILLI System", style="bold green"))
     
@@ -47,7 +48,21 @@ def start(config):
         engine = get_engine()
         await engine.start()
         
+        # Start API server if requested
+        if api:
+            import uvicorn
+            from core.api_server import app
+            
+            console.print("[cyan]Starting API server on http://localhost:8000[/cyan]")
+            
+            # Run API server in background
+            api_task = asyncio.create_task(
+                uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+            )
+        
         console.print("[green]✓[/green] ILLI is running!")
+        if api:
+            console.print("[cyan]API server running on http://localhost:8000[/cyan]")
         console.print("\nPress Ctrl+C to stop\n")
         
         try:

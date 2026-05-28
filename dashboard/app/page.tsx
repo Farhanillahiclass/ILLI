@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, Cpu, MemoryStick, Zap, Users, Brain } from 'lucide-react'
+import { Activity, Cpu, MemoryStick, Zap, Users, Brain, Play, Square } from 'lucide-react'
+
+const API_BASE = 'http://localhost:8000'
 
 export default function Dashboard() {
   const [systemStatus, setSystemStatus] = useState({
@@ -10,23 +12,91 @@ export default function Dashboard() {
     memory: 0,
     gpu: 0,
     activeAgents: 0,
-    uptime: 0
+    uptime: 0,
+    model_loaded: false,
+    tasks_completed: 0,
+    tasks_failed: 0
   })
+  const [isConnected, setIsConnected] = useState(false)
+  const [query, setQuery] = useState('')
+  const [response, setResponse] = useState('')
 
   useEffect(() => {
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      setSystemStatus(prev => ({
-        ...prev,
-        cpu: Math.random() * 30 + 10,
-        memory: Math.random() * 20 + 40,
-        gpu: Math.random() * 40 + 20,
-        uptime: prev.uptime + 1
-      }))
-    }, 1000)
-
+    fetchStatus()
+    const interval = setInterval(fetchStatus, 2000)
     return () => clearInterval(interval)
   }, [])
+
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/status`)
+      if (res.ok) {
+        const data = await res.json()
+        setSystemStatus({
+          state: data.state,
+          cpu: data.cpu_usage_percent,
+          memory: data.memory_usage_mb / 1024,
+          gpu: data.gpu_usage_percent,
+          activeAgents: data.active_agents,
+          uptime: data.uptime_seconds,
+          model_loaded: data.model_loaded,
+          tasks_completed: data.tasks_completed,
+          tasks_failed: data.tasks_failed
+        })
+        setIsConnected(true)
+      } else {
+        setIsConnected(false)
+      }
+    } catch (error) {
+      setIsConnected(false)
+    }
+  }
+
+  const handleQuery = async () => {
+    if (!query.trim()) return
+    
+    try {
+      const res = await fetch(`${API_BASE}/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      })
+      const data = await res.json()
+      setResponse(data.response)
+    } catch (error) {
+      setResponse('Error: Could not connect to ILLI backend')
+    }
+  }
+
+  const handleStart = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/command`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: 'start' })
+      })
+      if (res.ok) {
+        await fetchStatus()
+      }
+    } catch (error) {
+      console.error('Start error:', error)
+    }
+  }
+
+  const handleStop = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/command`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: 'stop' })
+      })
+      if (res.ok) {
+        await fetchStatus()
+      }
+    } catch (error) {
+      console.error('Stop error:', error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
@@ -44,6 +114,16 @@ export default function Dashboard() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
+              <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
+                isConnected 
+                  ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
+              }`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  isConnected ? 'bg-green-400 animate-pulse' : 'bg-red-400'
+                }`} />
+                <span className="text-sm font-medium">{isConnected ? 'Connected' : 'Disconnected'}</span>
+              </div>
               <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
                 systemStatus.state === 'running' 
                   ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
@@ -105,6 +185,9 @@ export default function Dashboard() {
               <div className="bg-slate-900/50 rounded-xl p-4 border border-cyan-500/20">
                 <div className="text-sm text-cyan-400/60 mb-2">Current Model</div>
                 <div className="text-lg font-medium text-white">Llama 2 7B (Q4_K_M)</div>
+                <div className="text-sm text-cyan-400/60 mt-1">
+                  {systemStatus.model_loaded ? '✓ Loaded' : '○ Not Loaded'}
+                </div>
               </div>
               
               <div className="bg-slate-900/50 rounded-xl p-4 border border-cyan-500/20">
@@ -115,12 +198,45 @@ export default function Dashboard() {
               </div>
               
               <div className="bg-slate-900/50 rounded-xl p-4 border border-cyan-500/20">
-                <div className="text-sm text-cyan-400/60 mb-2">Thinking State</div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
-                  <span className="text-lg font-medium text-white">Ready</span>
+                <div className="text-sm text-cyan-400/60 mb-2">Tasks</div>
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <span className="text-lg font-medium text-white">{systemStatus.tasks_completed}</span>
+                    <span className="text-sm text-cyan-400/60 ml-1">Completed</span>
+                  </div>
+                  <div>
+                    <span className="text-lg font-medium text-white">{systemStatus.tasks_failed}</span>
+                    <span className="text-sm text-cyan-400/60 ml-1">Failed</span>
+                  </div>
                 </div>
               </div>
+
+              {/* Query Input */}
+              <div className="bg-slate-900/50 rounded-xl p-4 border border-cyan-500/20">
+                <div className="text-sm text-cyan-400/60 mb-2">Query ILLI</div>
+                <textarea
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Ask ILLI something..."
+                  className="w-full bg-slate-800 border border-cyan-500/30 rounded-lg p-3 text-white placeholder-cyan-400/40 focus:outline-none focus:border-cyan-500 resize-none"
+                  rows={3}
+                />
+                <button
+                  onClick={handleQuery}
+                  disabled={!query.trim() || systemStatus.state !== 'running'}
+                  className="mt-2 w-full py-2 px-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-lg text-white font-medium transition-all neon-glow disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Send Query
+                </button>
+              </div>
+
+              {/* Response */}
+              {response && (
+                <div className="bg-slate-900/50 rounded-xl p-4 border border-cyan-500/20">
+                  <div className="text-sm text-cyan-400/60 mb-2">Response</div>
+                  <div className="text-white whitespace-pre-wrap">{response}</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -129,8 +245,21 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold text-cyan-400 mb-6">Quick Actions</h2>
             
             <div className="space-y-3">
-              <button className="w-full py-3 px-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-white font-medium transition-all neon-glow">
-                Start ILLI
+              <button 
+                onClick={handleStart}
+                disabled={systemStatus.state === 'running'}
+                className="w-full py-3 px-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-white font-medium transition-all neon-glow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                <Play className="w-4 h-4" />
+                <span>Start ILLI</span>
+              </button>
+              <button 
+                onClick={handleStop}
+                disabled={systemStatus.state !== 'running'}
+                className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl text-white font-medium transition-all border border-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                <Square className="w-4 h-4" />
+                <span>Stop ILLI</span>
               </button>
               <button className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl text-white font-medium transition-all border border-cyan-500/30">
                 View Logs
