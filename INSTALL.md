@@ -11,29 +11,32 @@
 
 ## Quick Install
 
-### Windows
+### Windows (PowerShell)
 
 1. **Clone the repository**
-```bash
+```powershell
 git clone https://github.com/Farhanillahiclass/ILLI.git
 cd ILLI
 ```
 
 2. **Run the installation script**
-```bash
+```powershell
 python scripts/install.py
 ```
 
 3. **Start ILLI**
-```bash
+```powershell
 python -m illi.cli start
 ```
 
 4. **Start the dashboard** (in a new terminal)
-```bash
+```powershell
 cd dashboard
+npm install
 npm run dev
 ```
+
+**Note:** PowerShell uses `;` instead of `&&` for command chaining.
 
 ### Manual Installation
 

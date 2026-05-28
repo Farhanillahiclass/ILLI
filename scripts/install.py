@@ -47,15 +47,27 @@ def install_python_dependencies():
     """Install Python dependencies"""
     print("\nInstalling Python dependencies...")
     
-    # Try core dependencies first
-    try:
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install", "-r", "requirements-core.txt"
-        ])
-        print("✓ Core Python dependencies installed")
-    except subprocess.CalledProcessError as e:
-        print(f"✗ Error installing core dependencies: {e}")
-        return False
+    # Try core dependencies first with retry logic
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempt {attempt + 1}/{max_retries}...")
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", "-r", "requirements-core.txt",
+                "--timeout", "300"
+            ])
+            print("✓ Core Python dependencies installed")
+            break
+        except subprocess.CalledProcessError as e:
+            if attempt < max_retries - 1:
+                print(f"⚠ Network error, retrying... ({attempt + 1}/{max_retries})")
+                import time
+                time.sleep(2)
+            else:
+                print(f"✗ Error installing core dependencies: {e}")
+                print("\n  Try running manually:")
+                print("  pip install -r requirements-core.txt")
+                return False
     
     # Try optional dependencies
     print("\nInstalling optional dependencies (may fail on some systems)...")
@@ -81,7 +93,7 @@ def install_node_dependencies():
         print("⚠ npm not found. Skipping dashboard installation.")
         print("  To install the dashboard:")
         print("  1. Install Node.js from https://nodejs.org/")
-        print("  2. Run: cd dashboard && npm install")
+        print("  2. Run: cd dashboard; npm install")
         print("  3. Run: npm run dev")
         return False
     
