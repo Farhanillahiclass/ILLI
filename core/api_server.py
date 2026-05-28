@@ -66,11 +66,11 @@ _engine = None
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize the engine on startup"""
+    """Initialize and start the engine on startup"""
     global _engine
     logger.info("Starting ILLI API Server...")
     _engine = get_engine()
-    await _engine.initialize()
+    await _engine.start()
     logger.info("ILLI API Server started")
 
 
