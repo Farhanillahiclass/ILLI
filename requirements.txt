@@ -1,6 +1,6 @@
 # Core AI
 ollama>=0.1.0
-llama-cpp-python>=0.2.0
+# llama-cpp-python>=0.2.0  # Optional - requires compilation, use Ollama instead
 transformers>=4.35.0
 torch>=2.1.0
 accelerate>=0.25.0
@@ -11,25 +11,25 @@ faiss-cpu>=1.7.4
 sentence-transformers>=2.2.0
 numpy>=1.24.0
 
-# Voice
-openai-whisper>=20231117
-fiper-tts>=0.1.0
-faster-whisper>=0.9.0
-pyaudio>=0.2.13
-sounddevice>=0.4.6
+# Voice (Optional - requires additional setup)
+# openai-whisper>=20231117
+# fiper-tts>=0.1.0
+# faster-whisper>=0.9.0
+# pyaudio>=0.2.13
+# sounddevice>=0.4.6
 
-# Vision
-opencv-python>=4.8.0
-pytesseract>=0.3.10
-easyocr>=1.7.0
+# Vision (Optional - requires additional setup)
+# opencv-python>=4.8.0
+# pytesseract>=0.3.10
+# easyocr>=1.7.0
 pillow>=10.0.0
-ultralytics>=8.0.0
+# ultralytics>=8.0.0
 
-# Computer Control
-pyautogui>=0.9.54
-pywinauto>=0.6.8
-keyboard>=0.13.5
-mouse>=0.7.1
+# Computer Control (Optional - requires additional setup)
+# pyautogui>=0.9.54
+# pywinauto>=0.6.8
+# keyboard>=0.13.5
+# mouse>=0.7.1
 
 # Web & API
 fastapi>=0.104.0

@@ -47,15 +47,28 @@ def install_python_dependencies():
     """Install Python dependencies"""
     print("\nInstalling Python dependencies...")
     
+    # Try core dependencies first
+    try:
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install", "-r", "requirements-core.txt"
+        ])
+        print("✓ Core Python dependencies installed")
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Error installing core dependencies: {e}")
+        return False
+    
+    # Try optional dependencies
+    print("\nInstalling optional dependencies (may fail on some systems)...")
     try:
         subprocess.check_call([
             sys.executable, "-m", "pip", "install", "-r", "requirements.txt"
         ])
-        print("✓ Python dependencies installed")
-        return True
+        print("✓ Optional dependencies installed")
     except subprocess.CalledProcessError as e:
-        print(f"✗ Error installing Python dependencies: {e}")
-        return False
+        print(f"⚠ Some optional dependencies failed to install: {e}")
+        print("  This is normal. ILLI will work with core dependencies.")
+    
+    return True
 
 def install_node_dependencies():
     """Install Node.js dependencies"""
@@ -63,9 +76,13 @@ def install_node_dependencies():
     
     # Check if npm is available
     try:
-        subprocess.check_call(["npm", "--version"], stdout=subprocess.DEVNULL)
+        subprocess.check_call(["npm", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("✗ npm not found. Please install Node.js from https://nodejs.org/")
+        print("⚠ npm not found. Skipping dashboard installation.")
+        print("  To install the dashboard:")
+        print("  1. Install Node.js from https://nodejs.org/")
+        print("  2. Run: cd dashboard && npm install")
+        print("  3. Run: npm run dev")
         return False
     
     try:
