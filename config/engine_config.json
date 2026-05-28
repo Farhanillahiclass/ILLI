@@ -1,0 +1,33 @@
+{
+  "model": {
+    "name": "llama2",
+    "path": "models/llama2-7b.gguf",
+    "context_size": 4096,
+    "gpu_layers": -1,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "max_tokens": 2048,
+    "quantization": "q4_k_m"
+  },
+  "memory": {
+    "data_dir": "data/memory",
+    "short_term_limit": 100,
+    "working_memory_limit": 50,
+    "auto_cleanup_days": 30
+  },
+  "agents": {
+    "enabled": [
+      "master",
+      "coding",
+      "research",
+      "memory",
+      "vision",
+      "voice"
+    ]
+  },
+  "system": {
+    "log_level": "INFO",
+    "max_concurrent_tasks": 10,
+    "task_timeout": 300
+  }
+}
