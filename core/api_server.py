@@ -98,7 +98,7 @@ async def get_status():
     
     status = _engine.get_status()
     return StatusResponse(
-        state=status.state.value,
+        state=_engine.state.value,
         model_loaded=status.model_loaded,
         active_agents=status.active_agents,
         memory_usage_mb=status.memory_usage_mb,
