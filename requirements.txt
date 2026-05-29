@@ -62,3 +62,30 @@ pynvml>=0.9.0
 # Async
 asyncio>=3.4.3
 nest-asyncio>=1.5.8
+
+# UI & Interface
+streamlit>=1.28.0
+streamlit-lottie>=0.0.5
+
+# TTS & Voice
+pyttsx3>=2.90
+SpeechRecognition>=3.10.0
+
+# Audio Control (Windows)
+pycaw>=20190726
+comtypes>=1.2
+
+# Hotkeys & Automation
+pynput>=1.7.6
+pyautogui>=0.9.54
+keyboard>=0.13.5
+mouse>=0.7.1
+
+# System Control
+wmi>=1.5.1
+pywin32>=306
+
+# Additional Utilities
+schedule>=1.2.0
+apscheduler>=3.10.0
+requests>=2.31.0

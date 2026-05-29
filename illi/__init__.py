@@ -1,6 +1,3 @@
-"""
-ILLI - Intelligent Local Learning Interface
-Main package initialization.
-"""
+__version__ = "1.2.5"
 
-__version__ = "0.1.0"
+from .cli import main
