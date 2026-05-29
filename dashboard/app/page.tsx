@@ -53,6 +53,7 @@ export default function Dashboard() {
   }
 
   const handleQuery = async () => {
+    console.log('Query button clicked, query:', query)
     if (!query.trim()) return
     
     try {
@@ -61,20 +62,24 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
       })
+      console.log('Query response:', res.status)
       const data = await res.json()
       setResponse(data.response)
     } catch (error) {
+      console.error('Query error:', error)
       setResponse('Error: Could not connect to ILLI backend')
     }
   }
 
   const handleStart = async () => {
+    console.log('Start button clicked')
     try {
       const res = await fetch(`${API_BASE}/command`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: 'start' })
       })
+      console.log('Start response:', res.status)
       if (res.ok) {
         await fetchStatus()
       }
@@ -84,12 +89,14 @@ export default function Dashboard() {
   }
 
   const handleStop = async () => {
+    console.log('Stop button clicked')
     try {
       const res = await fetch(`${API_BASE}/command`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: 'stop' })
       })
+      console.log('Stop response:', res.status)
       if (res.ok) {
         await fetchStatus()
       }
