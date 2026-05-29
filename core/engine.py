@@ -194,8 +194,12 @@ class AIEngine:
         if orchestrator:
             response = await orchestrator.process_query(query, context)
             # Send response back
-            if 'callback' in event:
-                await event['callback'](response)
+            if 'callback' in event and event['callback']:
+                callback = event['callback']
+                if asyncio.iscoroutinefunction(callback):
+                    await callback(response)
+                else:
+                    callback(response)
     
     async def _handle_command(self, event: Dict[str, Any]):
         """Handle a command event"""
@@ -204,12 +208,31 @@ class AIEngine:
         
         # Execute command
         logger.info(f"Executing command: {command}")
-        # Command execution logic here
+        
+        # Handle start/stop commands
+        if command == 'start':
+            if self.state != EngineState.RUNNING:
+                await self.start()
+        elif command == 'stop':
+            if self.state == EngineState.RUNNING:
+                await self.stop()
+        
+        # Send response back
+        if 'callback' in event and event['callback']:
+            callback = event['callback']
+            if asyncio.iscoroutinefunction(callback):
+                await callback({"success": True})
+            else:
+                callback({"success": True})
     
     async def _handle_status_request(self, event: Dict[str, Any]):
         """Handle status request"""
-        if 'callback' in event:
-            await event['callback'](self.status)
+        if 'callback' in event and event['callback']:
+            callback = event['callback']
+            if asyncio.iscoroutinefunction(callback):
+                await callback(self.status)
+            else:
+                callback(self.status)
     
     async def _status_update_loop(self):
         """Update system status periodically"""
